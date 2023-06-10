@@ -5,6 +5,8 @@ require "redis-client"
 require_relative "redis/index"
 require_relative "redis/flat_index"
 require_relative "redis/hnsw_index"
+require_relative "redis/configuration"
+require_relative "redis/configured_index"
 require_relative "redis/version"
 
 module Neighbor
@@ -13,6 +15,14 @@ module Neighbor
 
     class << self
       attr_accessor :client
+
+      def configuration
+        @configuration ||= Configuration.new 
+      end
+
+      def configure 
+        yield(configuration)
+      end
     end
   end
 end

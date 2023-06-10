@@ -116,6 +116,78 @@ class IndexTest < Minitest::Test
     assert_equal [1, 3, 2], index.search([1, 1, 1]).map { |v| v[:id].to_i }
   end
 
+  def test_config 
+    Neighbor::Redis.configure do |config|
+      config.algorithm = "HNSW"
+      config.dimensions = 3
+      config.distance = "l2"
+    end
+
+    index = Neighbor::Redis::ConfiguredIndex.new("configured-items")
+    index.drop if index.exists?
+    index.create
+    add_items(index)
+    assert_equal [1, 3, 2], index.search([1, 1, 1]).map { |v| v[:id].to_i }
+    assert_equal index.instance_variable_get("@distance_metric"), "L2"
+  end
+
+  def test_configured_distance
+    Neighbor::Redis.configure do |config|
+      config.algorithm = "HNSW"
+      config.dimensions = 3
+      config.distance = "cosine"
+    end
+
+    index = Neighbor::Redis::ConfiguredIndex.new("configured-distance")
+    assert_equal index.instance_variable_get("@distance_metric"), "COSINE"
+  end
+
+  def test_configured_type 
+    Neighbor::Redis.configure do |config|
+      config.algorithm = "HNSW"
+      config.dimensions = 3
+      config.distance = "l2"
+      config.type = "float64"
+    end
+
+    index = Neighbor::Redis::ConfiguredIndex.new("configured-type")
+    assert index.instance_variable_get("@float64")
+  end
+
+  def test_configured_redis_type 
+    Neighbor::Redis.configure do |config|
+      config.algorithm = "HNSW"
+      config.dimensions = 3
+      config.distance = "l2"
+      config.redis_type = "json"
+    end
+
+    index = Neighbor::Redis::ConfiguredIndex.new("configured-redis-type")
+    assert index.instance_variable_get("@json")
+  end
+
+  def test_invalid_config_hnsw
+    error = assert_raises(Neighbor::Redis::Configuration::AlgorithmParameterMismatchError) do 
+      Neighbor::Redis.configure do |config|
+        config.algorithm = "HNSW"
+        config.dimensions = 3
+        config.block_size = 100
+      end
+    end
+    assert_equal "Algorithm HNSW doesn't support the block_size parameter", error.message
+  end
+
+  def test_invalid_config_flat 
+    error = assert_raises(Neighbor::Redis::Configuration::AlgorithmParameterMismatchError) do 
+      Neighbor::Redis.configure do |config|
+        config.algorithm = "FLAT"
+        config.dimensions = 3
+        config.epsilon = 1
+      end
+    end
+    assert_equal "Algorithm FLAT doesn't support the epsilon parameter", error.message
+  end
+
   def test_invalid_name
     error = assert_raises(ArgumentError) do
       Neighbor::Redis::HNSWIndex.create("items:", dimensions: 3, distance: "l2")
