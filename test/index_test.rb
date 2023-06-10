@@ -116,6 +116,22 @@ class IndexTest < Minitest::Test
     assert_equal [1, 3, 2], index.search([1, 1, 1]).map { |v| v[:id].to_i }
   end
 
+  def test_deserialized_flat
+    index = Neighbor::Redis::FlatIndex.create("items", dimensions: 3, distance: "l2")
+    add_items(index)
+    serialized_index = index.serialize
+    deserialized_index = Neighbor::Redis::Index.deserialize(serialized_index)
+    assert_equal index.search([1, 1, 1]), deserialized_index.search([1, 1, 1])
+  end
+
+  def test_deserialized_hnsw
+    index = Neighbor::Redis::HNSWIndex.create("items", dimensions: 3, distance: "l2")
+    add_items(index)
+    serialized_index = index.serialize
+    deserialized_index = Neighbor::Redis::Index.deserialize(serialized_index)
+    assert_equal index.search([1, 1, 1]), deserialized_index.search([1, 1, 1])
+  end
+
   def test_invalid_name
     error = assert_raises(ArgumentError) do
       Neighbor::Redis::HNSWIndex.create("items:", dimensions: 3, distance: "l2")

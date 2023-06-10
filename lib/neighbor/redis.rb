@@ -1,5 +1,6 @@
 # dependencies
 require "redis-client"
+require "yaml"
 
 # modules
 require_relative "redis/index"

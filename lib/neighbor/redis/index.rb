@@ -145,6 +145,14 @@ module Neighbor
         redis.call("FT.ALIASUPDATE", index_name(alias_name), @index_name)
       end
 
+      def serialize
+        self.to_yaml
+      end
+
+      def self.deserialize(yaml)
+        YAML.load(yaml, permitted_classes: [Neighbor::Redis::HNSWIndex, Neighbor::Redis::FlatIndex])
+      end
+
       private
 
       def index_name(name)
