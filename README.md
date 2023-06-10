@@ -142,6 +142,18 @@ Drop the index
 index.drop
 ```
 
+Serialize the index object (for storage and retrieval)
+
+```ruby
+serialized_index = index.serialize
+```
+
+Deserialize the index object
+
+```ruby
+deserialized_index = Neighbor::Redis::Index.deserialize(serialized_index)
+```
+
 ## Example
 
 You can use Neighbor Redis for online item-based recommendations with [Disco](https://github.com/ankane/disco). We’ll use MovieLens data for this example.
