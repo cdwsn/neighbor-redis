@@ -180,10 +180,47 @@ class IndexTest < Minitest::Test
     assert_equal "expected 3 dimensions", error.message
   end
 
+  def test_retrieved_index_add
+    original_index = create_index("l2")
+    add_items(original_index)
+    retrieved_index = retrieve_index("l2")
+
+    retrieved_index.add(4, [3, 3, 3])
+    assert_equal original_index.find(4), retrieved_index.find(4)
+  end
+
+  def test_retrieved_index_search
+    original_index = create_index("l2")
+    add_items(original_index)
+    retrieved_index = retrieve_index("l2")
+
+    assert_equal original_index.search([1, 1, 1]), retrieved_index.search([1, 1, 1])
+  end
+
+  def test_retrieved_index_find
+    original_index = create_index("l2")
+    add_items(original_index)
+    retrieved_index = retrieve_index("l2")
+
+    assert_equal original_index.find(1), retrieved_index.find(1)
+  end
+
+  def test_retrieved_index_nearest
+    original_index = create_index("l2")
+    add_items(original_index)
+    retrieved_index = retrieve_index("l2")
+
+    assert_equal original_index.nearest(1), retrieved_index.nearest(1)
+  end
+
   private
 
   def create_index(distance, **options)
     Neighbor::Redis::HNSWIndex.create("items", dimensions: 3, distance: distance, **options)
+  end
+
+  def retrieve_index(distance)
+    Neighbor::Redis.retrieve_index("items", dimensions: 3, distance: distance)
   end
 
   def add_items(index)
